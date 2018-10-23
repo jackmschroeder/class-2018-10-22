@@ -1,0 +1,24 @@
+---
+title: "FEC Data, 1989-1990"
+author: "Jack Schroeder"
+date: "10/22/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(dplyr)
+library(readxl)
+library(janitor)
+
+fec8990<-read_excel("fec8990.xlsx") %>% 
+  clean.names()
+
+fec8990 %>% 
+  filter(X__7=="HARVARD") %>% 
+  print()
+
+fec8990
+```
