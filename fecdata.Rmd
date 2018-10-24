@@ -5,20 +5,55 @@ date: "10/22/2018"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(dplyr)
 library(readxl)
 library(janitor)
+library(fs)
 
-fec8990<-read_excel("fec8990.xlsx") %>% 
-  clean.names()
-
-fec8990 %>% 
-  filter(X__7=="HARVARD") %>% 
-  print()
-
-fec8990
 ```
+
+```{r, cache=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+download.file("https://www.fec.gov/files/bulk-downloads/1990/indiv90.zip", destfile = "indiv90.zip")
+unzip("indiv90.zip")
+indiv <- read_delim("itcont.txt", delim = "|", col_names = FALSE, escape_double = FALSE)
+
+download.file("https://www.fec.gov/files/bulk-downloads/1990/cm90.zip", destfile = "cm90.zip")
+unzip("cm90.zip")
+committeeMaster <- read_delim("cm.txt", delim = "|", col_names = FALSE, escape_double = FALSE)
+
+file_delete(c("itcont.txt", "indiv90.zip"))
+file_delete(c("cm.txt", "cm90.zip"))
+```
+
+
+```{r, echo=FALSE}
+
+stuff1<-indiv %>% 
+  transmute(name = X8, employer = X12, state = X10, amount = X15)
+
+stuff2<-committeeMaster %>% 
+  transmute(committee = X2, name = X3, address = X4, city = X6, state_abb=X7, zipcode = X8, employer = X14)
+
+all<- left_join(stuff1, stuff2, by = "name", suffix = c(".indiv", ".cm"))
+
+all
+
+all %>%
+  filter(str_detect(employer.indiv, "HARVARD")) %>% 
+  arrange(desc(amount)) %>% 
+  head(1)
+```
+
+```{r}
+
+
+all %>%
+  filter(str_detect(employer, "HARVARD")) %>% 
+  arrange(desc(amount)) %>% 
+  select(name, employer.indiv, amount)
+```
+
